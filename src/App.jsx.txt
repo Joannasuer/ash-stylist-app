@@ -1,0 +1,25 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
+import Layout from './components/layout/Layout';
+import Home from './pages/Home';
+import ChatPage from './pages/ChatPage';
+import SketchPage from './pages/SketchPage';
+import ClosetPage from './pages/ClosetPage';
+
+export default function App() {
+  return (
+    <AppProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="sketch" element={<SketchPage />} />
+            <Route path="closet" element={<ClosetPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AppProvider>
+  );
+}
