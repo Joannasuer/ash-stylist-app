@@ -1,80 +1,88 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  // --- STATE ---
+  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [cart, setCart] = useState([]);
   const [closet, setCloset] = useState([]);
-  const [userProfile, setUserProfile] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userStats, setUserStats] = useState({ height: '', weight: '' });
-  const [suggestedLook, setSuggestedLook] = useState(null);
-
-  // Global Modals State
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  
+  // GLOBAL MODAL STATE (This fixes the button connection)
+  const [showFitModal, setShowFitModal] = useState(false); 
   const [showSizeModal, setShowSizeModal] = useState(false);
-  const [showInterrogation, setShowInterrogation] = useState(false);
-  const [isQuizOpen, setIsQuizOpen] = useState(false);
   
-  // Specific Product Interaction State
-  const [selectedProduct, setSelectedProduct] = useState(null); 
-  const [tryOnProduct, setTryOnProduct] = useState(null); 
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [tryOnProduct, setTryOnProduct] = useState(null);
 
-  const [hasSkippedProfile, setHasSkippedProfile] = useState(false);
-  const [completeProfileTrigger, setCompleteProfileTrigger] = useState(false);
+  // --- ACTIONS ---
+  const toggleMobileNav = () => setIsMobileNavOpen(!isMobileNavOpen);
 
-  const addToCart = (product) => setCart([...cart, product]);
-  
-  const toggleCloset = (product) => { 
-    if (!isLoggedIn) { 
-      setShowLoginModal(true); 
-      return; 
-    } 
-    setCloset(prev => prev.find(i => i.id === product.id) ? prev.filter(i => i.id !== product.id) : [...prev, product]); 
+  const toggleCloset = (product) => {
+    if (!product) return;
+    setCloset((prev) => {
+      const exists = prev.find((item) => item.id === product.id);
+      return exists ? prev.filter((i) => i.id !== product.id) : [...prev, product];
+    });
   };
 
-  const saveStats = (stats) => { 
-    setUserStats(stats); 
-    alert(`Profile Updated.`); 
+  const addToCart = (product) => {
+    if (!product) return;
+    setCart((prev) => [...prev, product]);
+    alert("Added to Cart!");
   };
 
-  const handleLogin = (profile) => { 
-    setIsLoggedIn(true); 
-    if(profile) setUserProfile(prev => ({...prev, ...profile}));
-    setShowLoginModal(false); 
+  const signup = async (email, password, additionalData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newUser = { uid: "user-" + Date.now(), email };
+      const newProfile = { ...additionalData };
+
+      setUser(newUser);
+      setUserProfile(newProfile);
+      return newUser;
+    } catch (error) {
+      console.error("Signup error", error);
+      throw error;
+    }
   };
 
-  const handleProfileComplete = (data) => {
-    setUserProfile(data);
-    setShowInterrogation(false);
-    setCompleteProfileTrigger(true);
-    setIsLoggedIn(true);
-  };
-
+  // --- EXPORT ---
   const value = {
-    cart, addToCart,
-    closet, toggleCloset,
-    userProfile, setUserProfile,
-    isLoggedIn, setIsLoggedIn,
-    userStats, saveStats,
-    suggestedLook, setSuggestedLook,
+    user,
+    userProfile,
+    isLoggedIn: !!user,
+    cart,
+    addToCart,
+    closet,
+    toggleCloset,
+    isMobileNavOpen,
+    toggleMobileNav,
     
-    // Modal Controls
-    showLoginModal, setShowLoginModal,
-    showSizeModal, setShowSizeModal,
-    showInterrogation, setShowInterrogation,
-    isQuizOpen, setIsQuizOpen,
-    selectedProduct, setSelectedProduct,
-    tryOnProduct, setTryOnProduct,
-
-    hasSkippedProfile, setHasSkippedProfile,
-    completeProfileTrigger, setCompleteProfileTrigger,
-
-    handleLogin,
-    handleProfileComplete
+    // The Fix: Exposing these globally
+    showFitModal, 
+    setShowFitModal,
+    
+    showSizeModal,
+    setShowSizeModal,
+    selectedProduct,
+    setSelectedProduct,
+    tryOnProduct,
+    setTryOnProduct,
+    signup
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export const useApp = () => useContext(AppContext);
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) throw new Error('useApp must be used within AppProvider');
+  return context;
+};
+
+export default AppContext;

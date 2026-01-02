@@ -1,25 +1,47 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
-import Layout from './components/layout/Layout';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/layout/Header';
 import Home from './pages/Home';
 import ChatPage from './pages/ChatPage';
 import SketchPage from './pages/SketchPage';
-import ClosetPage from './pages/ClosetPage';
+import FitProfileModal from './components/features/FitProfileModal'; // <--- IMPORT THIS
+import { AppProvider, useApp } from './context/AppContext';
 
-export default function App() {
+// Create a wrapper component to use the context hooks
+const AppContent = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { showSizeModal, setShowSizeModal } = useApp(); // <--- GET STATE FROM CONTEXT
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <AppProvider>
-      <BrowserRouter>
+    <div className="min-h-screen bg-white flex flex-col font-sans text-gray-900 selection:bg-red-100">
+      <Header isScrolled={isScrolled} />
+      
+      {/* 🔴 THE MODAL GOES HERE */}
+      {showSizeModal && <FitProfileModal onClose={() => setShowSizeModal(false)} />}
+      
+      <main className="flex-grow">
         <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="chat" element={<ChatPage />} />
-            <Route path="sketch" element={<SketchPage />} />
-            <Route path="closet" element={<ClosetPage />} />
-          </Route>
+          <Route path="/" element={<Home />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/sketch" element={<SketchPage />} />
         </Routes>
-      </BrowserRouter>
-    </AppProvider>
+      </main>
+    </div>
   );
-}
+};
+
+const App = () => (
+  <AppProvider>
+    <Router>
+      <AppContent />
+    </Router>
+  </AppProvider>
+);
+
+export default App;

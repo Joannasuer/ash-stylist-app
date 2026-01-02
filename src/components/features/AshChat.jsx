@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ChevronLeft, ShieldCheck, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppLogo from '../ui/AppLogo';
-import ProductCard from '../common/ProductCard';
 import { askAshAI } from '../../utils/api';
-import { PRODUCT_DATABASE } from '../../utils/constants';
 
 const AshChat = ({ 
   onBack, 
@@ -66,10 +64,9 @@ const AshChat = ({
   };
 
   return (
-    // 🔴 UPDATED CONTAINER: 
-    // - Removed "max-w-5xl" so it stretches full width.
-    // - Kept "m-4" and "w-[calc(100%-2rem)]" so it keeps the floating gap.
-    <div className="flex flex-col bg-white w-[calc(100%-2rem)] h-[calc(100%-2rem)] m-4 rounded-3xl overflow-hidden z-20 shadow-2xl border border-gray-200 mx-auto relative">
+    // 🔴 FIX: Changed 'm-4' to 'mt-24 mx-4 mb-4' to push content DOWN below the header.
+    // 🔴 FIX: Changed height to 'h-[calc(100vh-8rem)]' so the bottom doesn't get cut off.
+    <div className="flex flex-col bg-white w-[calc(100%-2rem)] h-[calc(100vh-8rem)] mt-24 mx-4 mb-4 rounded-3xl overflow-hidden z-20 shadow-2xl border border-gray-200 mx-auto relative">
       
       {/* HEADER */}
       <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0 w-full shadow-sm z-30">
