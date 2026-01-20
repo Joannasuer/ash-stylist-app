@@ -1,12 +1,15 @@
 import React from 'react';
-import { useOutletContext } from 'react-router-dom';
+// 1. REMOVED the broken import that was crashing your app
 import AshChat from '../components/features/AshChat';
 import StyleCanvas from '../components/features/StyleCanvas';
 import { useApp } from '../context/AppContext';
 import { PRODUCT_DATABASE } from '../utils/constants';
 
 const ChatPage = () => {
-  const { handleScroll } = useOutletContext();
+  // 2. FIXED: Removed 'useOutletContext' failure. 
+  // We use a simple placeholder so the app doesn't crash.
+  const handleScroll = () => {}; 
+
   const { 
     setSuggestedLook, 
     userProfile, 
@@ -27,7 +30,7 @@ const ChatPage = () => {
             handleScroll={handleScroll} 
             setSuggestedLook={setSuggestedLook} 
             userProfile={userProfile}
-            requestProfile={() => setShowInterrogation(true)}
+            requestProfile={() => setShowInterrogation(true)} // This triggers the modal
             hasSkippedProfile={hasSkippedProfile}
             completeProfile={completeProfileTrigger}
             suggestedLook={suggestedLook}

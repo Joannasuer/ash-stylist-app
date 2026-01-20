@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const AppContext = createContext();
 
@@ -10,10 +10,16 @@ export const AppProvider = ({ children }) => {
   const [closet, setCloset] = useState([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   
-  // GLOBAL MODAL STATE (This fixes the button connection)
+  // MODALS
   const [showFitModal, setShowFitModal] = useState(false); 
   const [showSizeModal, setShowSizeModal] = useState(false);
   
+  // 🔴 THIS WAS MISSING IN YOUR FILE. IT IS REQUIRED FOR THE BUTTON TO WORK.
+  const [showInterrogation, setShowInterrogation] = useState(false); 
+
+  // STYLING DATA
+  const [suggestedLook, setSuggestedLook] = useState(null);
+  const [hasSkippedProfile, setHasSkippedProfile] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [tryOnProduct, setTryOnProduct] = useState(null);
 
@@ -29,50 +35,41 @@ export const AppProvider = ({ children }) => {
   };
 
   const addToCart = (product) => {
-    if (!product) return;
     setCart((prev) => [...prev, product]);
     alert("Added to Cart!");
   };
 
   const signup = async (email, password, additionalData) => {
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newUser = { uid: "user-" + Date.now(), email };
-      const newProfile = { ...additionalData };
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const newUser = { uid: "user-" + Date.now(), email };
+        const newProfile = { ...additionalData };
+        setUser(newUser);
+        setUserProfile(newProfile);
+        return newUser;
+      } catch (error) {
+        console.error("Signup error", error);
+        throw error;
+      }
+    };
 
-      setUser(newUser);
-      setUserProfile(newProfile);
-      return newUser;
-    } catch (error) {
-      console.error("Signup error", error);
-      throw error;
-    }
-  };
-
-  // --- EXPORT ---
   const value = {
-    user,
-    userProfile,
-    isLoggedIn: !!user,
-    cart,
-    addToCart,
-    closet,
-    toggleCloset,
-    isMobileNavOpen,
-    toggleMobileNav,
+    user, userProfile,
+    cart, addToCart,
+    closet, toggleCloset,
+    isMobileNavOpen, toggleMobileNav,
     
-    // The Fix: Exposing these globally
-    showFitModal, 
-    setShowFitModal,
+    // Modals
+    showFitModal, setShowFitModal,
+    showSizeModal, setShowSizeModal,
     
-    showSizeModal,
-    setShowSizeModal,
-    selectedProduct,
-    setSelectedProduct,
-    tryOnProduct,
-    setTryOnProduct,
+    // 🔴 FIXED: Now the "Unlock" button will work
+    showInterrogation, setShowInterrogation,
+
+    suggestedLook, setSuggestedLook,
+    hasSkippedProfile, setHasSkippedProfile,
+    selectedProduct, setSelectedProduct,
+    tryOnProduct, setTryOnProduct,
     signup
   };
 

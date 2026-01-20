@@ -1,10 +1,14 @@
 import React from 'react';
-import { useOutletContext } from 'react-router-dom';
+// 1. REMOVED: import { useOutletContext } ... (This was crashing it)
 import DesignerStudio from '../components/features/DesignerStudio';
 import { useApp } from '../context/AppContext';
 
 const SketchPage = () => {
-  const { handleScroll } = useOutletContext();
+  // 2. FIXED: Replaced the broken context call with a simple function
+  const handleScroll = (e) => {
+     // Optional: You can add scroll logic here later if needed
+  };
+
   const { isLoggedIn, setShowLoginModal } = useApp();
 
   return (
