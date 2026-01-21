@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient'; // Ensure this path is correct
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   // --- STATE ---
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
   const [cart, setCart] = useState([]);
   const [closet, setCloset] = useState([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -13,8 +13,6 @@ export const AppProvider = ({ children }) => {
   // MODALS
   const [showFitModal, setShowFitModal] = useState(false); 
   const [showSizeModal, setShowSizeModal] = useState(false);
-  
-  // 🔴 THIS WAS MISSING IN YOUR FILE. IT IS REQUIRED FOR THE BUTTON TO WORK.
   const [showInterrogation, setShowInterrogation] = useState(false); 
 
   // STYLING DATA
@@ -22,6 +20,27 @@ export const AppProvider = ({ children }) => {
   const [hasSkippedProfile, setHasSkippedProfile] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [tryOnProduct, setTryOnProduct] = useState(null);
+
+  // --- 🔴 THE MISSING PIECE: LISTEN FOR LOGIN ---
+  useEffect(() => {
+    // 1. Check if user is already logged in when app loads
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // 2. Listen for the "Magic Link" click
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // If they just logged in, close the VIP popup automatically
+        setShowInterrogation(false);
+        console.log("User successfully logged in:", session.user.email);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // --- ACTIONS ---
   const toggleMobileNav = () => setIsMobileNavOpen(!isMobileNavOpen);
@@ -39,47 +58,22 @@ export const AppProvider = ({ children }) => {
     alert("Added to Cart!");
   };
 
-  const signup = async (email, password, additionalData) => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const newUser = { uid: "user-" + Date.now(), email };
-        const newProfile = { ...additionalData };
-        setUser(newUser);
-        setUserProfile(newProfile);
-        return newUser;
-      } catch (error) {
-        console.error("Signup error", error);
-        throw error;
-      }
-    };
-
   const value = {
-    user, userProfile,
+    user, // Now this will actually update!
     cart, addToCart,
     closet, toggleCloset,
     isMobileNavOpen, toggleMobileNav,
-    
-    // Modals
     showFitModal, setShowFitModal,
     showSizeModal, setShowSizeModal,
-    
-    // 🔴 FIXED: Now the "Unlock" button will work
     showInterrogation, setShowInterrogation,
-
     suggestedLook, setSuggestedLook,
     hasSkippedProfile, setHasSkippedProfile,
     selectedProduct, setSelectedProduct,
-    tryOnProduct, setTryOnProduct,
-    signup
+    tryOnProduct, setTryOnProduct
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) throw new Error('useApp must be used within AppProvider');
-  return context;
-};
-
+export const useApp = () => useContext(AppContext);
 export default AppContext;
