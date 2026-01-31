@@ -1,9 +1,34 @@
-// --- PASTE THIS INTO src/context/AppContext.jsx ---
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient'; 
+
+const AppContext = createContext();
+
+export const AppProvider = ({ children }) => {
+  // --- STATE ---
+  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null); // Added userProfile state
+  const [cart, setCart] = useState([]);
+  const [closet, setCloset] = useState([]);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  
+  // MODALS
+  const [showFitModal, setShowFitModal] = useState(false); 
+  const [showSizeModal, setShowSizeModal] = useState(false);
+  const [showInterrogation, setShowInterrogation] = useState(false); 
+
+  // STYLING DATA
+  const [suggestedLook, setSuggestedLook] = useState(null);
+  const [hasSkippedProfile, setHasSkippedProfile] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [tryOnProduct, setTryOnProduct] = useState(null);
+
+  // --- LOGIN LOGIC (THE BRIDGE) ---
   useEffect(() => {
     // 1. Check for Real Login (Supabase)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
+        // Fetch profile if needed
       } else {
         // 🟢 2. THE BRIDGE: Check if Shopify sent us a user
         const params = new URLSearchParams(window.location.search);
@@ -18,7 +43,7 @@
             user_metadata: { full_name: shopifyName },
             id: 'shopify_guest' 
           });
-          // Auto-Close the VIP Modal since we know them
+          setUserProfile({ isVIP: true }); // Assume Shopify users are VIPs
           setShowInterrogation(false); 
         }
       }
@@ -28,9 +53,49 @@
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
-        setShowInterrogation(false); // Close modal on login
+        setUserProfile({ isVIP: true });
+        setShowInterrogation(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // --- ACTIONS ---
+  const toggleMobileNav = () => setIsMobileNavOpen(!isMobileNavOpen);
+
+  const toggleCloset = (product) => {
+    if (!product) return;
+    setCloset((prev) => {
+      const exists = prev.find((item) => item.id === product.id);
+      return exists ? prev.filter((i) => i.id !== product.id) : [...prev, product];
+    });
+  };
+
+  const addToCart = (product) => {
+    setCart((prev) => [...prev, product]);
+    alert("Added to Cart!");
+  };
+
+  const value = {
+    user, 
+    userProfile, setUserProfile, // Added this
+    cart, addToCart,
+    closet, toggleCloset,
+    isMobileNavOpen, toggleMobileNav,
+    showFitModal, setShowFitModal,
+    showSizeModal, setShowSizeModal,
+    showInterrogation, setShowInterrogation,
+    suggestedLook, setSuggestedLook,
+    hasSkippedProfile, setHasSkippedProfile,
+    selectedProduct, setSelectedProduct,
+    tryOnProduct, setTryOnProduct
+  };
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+};
+
+// 🟢 THIS WAS MISSING! DO NOT DELETE THIS LINE
+export const useApp = () => useContext(AppContext);
+
+export default AppContext;
