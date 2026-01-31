@@ -6,7 +6,7 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   // --- STATE ---
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null); // Added userProfile state
+  const [userProfile, setUserProfile] = useState(null); 
   const [cart, setCart] = useState([]);
   const [closet, setCloset] = useState([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -28,28 +28,30 @@ export const AppProvider = ({ children }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
-        // Fetch profile if needed
+        setUserProfile({ isVIP: true }); // Supabase user is VIP
       } else {
-        // 🟢 2. THE BRIDGE: Check if Shopify sent us a user
-        const params = new URLSearchParams(window.location.search);
-        const shopifyEmail = params.get('email');
-        const shopifyName = params.get('name');
-
-        if (shopifyEmail) {
-          console.log("Bridge Connected: User from Shopify found:", shopifyEmail);
-          // Create a "Virtual User" so Ash knows who they are
-          setUser({ 
-            email: shopifyEmail, 
-            user_metadata: { full_name: shopifyName },
-            id: 'shopify_guest' 
-          });
-          setUserProfile({ isVIP: true }); // Assume Shopify users are VIPs
-          setShowInterrogation(false); 
+        // 🟢 2. THE BRIDGE: Check if Shopify sent us a user via URL
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const shopifyEmail = params.get('email');
+            const shopifyName = params.get('name');
+    
+            if (shopifyEmail) {
+              console.log("Bridge Connected: User from Shopify found:", shopifyEmail);
+              // Create a "Virtual User" so Ash knows who they are
+              setUser({ 
+                email: shopifyEmail, 
+                user_metadata: { full_name: shopifyName },
+                id: 'shopify_guest' 
+              });
+              setUserProfile({ isVIP: true }); // Assume Shopify users are VIPs
+              setShowInterrogation(false); // Close the lock screen
+            }
         }
       }
     });
 
-    // 3. Listen for Magic Link clicks
+    // 3. Listen for Magic Link clicks (Standard Supabase Login)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
@@ -79,7 +81,7 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     user, 
-    userProfile, setUserProfile, // Added this
+    userProfile, setUserProfile, 
     cart, addToCart,
     closet, toggleCloset,
     isMobileNavOpen, toggleMobileNav,
@@ -95,7 +97,7 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-// 🟢 THIS WAS MISSING! DO NOT DELETE THIS LINE
+// 🟢 CRITICAL EXPORT (This fixes the build error)
 export const useApp = () => useContext(AppContext);
 
 export default AppContext;
