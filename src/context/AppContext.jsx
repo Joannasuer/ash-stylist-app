@@ -1,79 +1,36 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient'; // Ensure this path is correct
-
-const AppContext = createContext();
-
-export const AppProvider = ({ children }) => {
-  // --- STATE ---
-  const [user, setUser] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [closet, setCloset] = useState([]);
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  
-  // MODALS
-  const [showFitModal, setShowFitModal] = useState(false); 
-  const [showSizeModal, setShowSizeModal] = useState(false);
-  const [showInterrogation, setShowInterrogation] = useState(false); 
-
-  // STYLING DATA
-  const [suggestedLook, setSuggestedLook] = useState(null);
-  const [hasSkippedProfile, setHasSkippedProfile] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [tryOnProduct, setTryOnProduct] = useState(null);
-
-  // --- 🔴 THE MISSING PIECE: LISTEN FOR LOGIN ---
+// --- PASTE THIS INTO src/context/AppContext.jsx ---
   useEffect(() => {
-    // 1. Check if user is already logged in when app loads
+    // 1. Check for Real Login (Supabase)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        // 🟢 2. THE BRIDGE: Check if Shopify sent us a user
+        const params = new URLSearchParams(window.location.search);
+        const shopifyEmail = params.get('email');
+        const shopifyName = params.get('name');
+
+        if (shopifyEmail) {
+          console.log("Bridge Connected: User from Shopify found:", shopifyEmail);
+          // Create a "Virtual User" so Ash knows who they are
+          setUser({ 
+            email: shopifyEmail, 
+            user_metadata: { full_name: shopifyName },
+            id: 'shopify_guest' 
+          });
+          // Auto-Close the VIP Modal since we know them
+          setShowInterrogation(false); 
+        }
+      }
     });
 
-    // 2. Listen for the "Magic Link" click
+    // 3. Listen for Magic Link clicks
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      
       if (session?.user) {
-        // If they just logged in, close the VIP popup automatically
-        setShowInterrogation(false);
-        console.log("User successfully logged in:", session.user.email);
+        setUser(session.user);
+        setShowInterrogation(false); // Close modal on login
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // --- ACTIONS ---
-  const toggleMobileNav = () => setIsMobileNavOpen(!isMobileNavOpen);
-
-  const toggleCloset = (product) => {
-    if (!product) return;
-    setCloset((prev) => {
-      const exists = prev.find((item) => item.id === product.id);
-      return exists ? prev.filter((i) => i.id !== product.id) : [...prev, product];
-    });
-  };
-
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
-    alert("Added to Cart!");
-  };
-
-  const value = {
-    user, // Now this will actually update!
-    cart, addToCart,
-    closet, toggleCloset,
-    isMobileNavOpen, toggleMobileNav,
-    showFitModal, setShowFitModal,
-    showSizeModal, setShowSizeModal,
-    showInterrogation, setShowInterrogation,
-    suggestedLook, setSuggestedLook,
-    hasSkippedProfile, setHasSkippedProfile,
-    selectedProduct, setSelectedProduct,
-    tryOnProduct, setTryOnProduct
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
-
-export const useApp = () => useContext(AppContext);
-export default AppContext;

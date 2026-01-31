@@ -23,6 +23,7 @@ const AshChat = () => {
     if (!userProfile?.isVIP) {
       setTimeout(() => {
          setIsTyping(false);
+         // 🟢 This adds the "Unlock Button" message
          setMessages(prev => [...prev, { sender: 'ash', text: "I need to know who I'm styling. Unlock your VIP profile.", isAction: true }]);
       }, 600);
       return; 
@@ -35,9 +36,9 @@ const AshChat = () => {
   };
 
   return (
-    // 🔴 FIXED: 'h-[calc(100dvh-5rem)]' forces it to fit on mobile screens
     <div className="flex flex-col bg-white w-full lg:w-[calc(100%-2rem)] h-[calc(100dvh-5rem)] lg:h-[calc(100vh-6rem)] mt-20 lg:mt-24 mx-0 lg:mx-4 mb-0 rounded-t-3xl lg:rounded-3xl overflow-hidden z-20 shadow-2xl border border-gray-200 relative">
       
+      {/* HEADER */}
       <div className="bg-white px-4 py-3 border-b border-gray-100 flex justify-between items-center shrink-0 w-full shadow-sm z-30">
         <div className="flex items-center gap-3">
            <button onClick={() => navigate('/')} className="lg:hidden p-2 -ml-2 text-black hover:bg-gray-100 rounded-full"><ChevronLeft size={24} /></button>
@@ -46,13 +47,24 @@ const AshChat = () => {
         </div>
       </div>
 
+      {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white w-full scroll-smooth pb-24">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.isAction ? (
-              <div className="max-w-[85%] p-5 bg-white border border-gray-200 shadow-lg rounded-xl text-center">
+              // 🟢 FIXED BUTTON SECTION
+              <div className="max-w-[85%] p-5 bg-white border border-gray-200 shadow-lg rounded-xl text-center relative z-40">
                  <p className="text-sm mb-3 font-serif italic">{msg.text}</p>
-                 <button onClick={() => setShowInterrogation(true)} className="w-full bg-black text-white py-3 text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-colors mb-2 shadow-md">Unlock VIP Profile</button>
+                 <button 
+                    onClick={() => {
+                        console.log("Unlock Button Clicked!"); // Debug check
+                        setShowInterrogation(true);
+                    }} 
+                    // 🟢 ADDED: relative, z-50, cursor-pointer to force clicks
+                    className="w-full bg-black text-white py-3 text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-colors mb-2 shadow-md relative z-50 cursor-pointer pointer-events-auto"
+                 >
+                    Unlock VIP Profile
+                 </button>
                  <div className="flex justify-center items-center gap-1 text-[9px] text-gray-400"><ShieldCheck size={10}/> <span>Secure. No Spam.</span></div>
               </div>
             ) : (
@@ -64,6 +76,7 @@ const AshChat = () => {
         <div ref={chatEndRef} />
       </div>
 
+      {/* INPUT AREA */}
       <div className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 p-4 pb-8 lg:pb-4 z-40">
         <div className="flex items-center gap-2">
           <input type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Ask me anything..." className="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm focus:ring-1 focus:ring-black outline-none" />
