@@ -1,40 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layers, Loader2, Sparkles, Lock, PenTool, Scissors, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { generateSketch, saveSketchToDatabase, getUserSketches } from '../../utils/sketch';
 
-// 🔴 NO EXTERNAL IMPORTS. This file is self-contained.
-
-const DesignerStudio = ({ requestLogin, isLoggedIn }) => {
+const DesignerStudio = () => {
+  const { session, userProfile } = useAuth();
   const [sketchPrompt, setSketchPrompt] = useState('');
   const [isSketching, setIsSketching] = useState(false);
   const [generatedSketch, setGeneratedSketch] = useState(null);
-  const [designOptions, setDesignOptions] = useState({ fabric: 'Silk', silhouette: 'Fitted', vibe: 'Elegant' });
+  const [designOptions, setDesignOptions] = useState({ fabric: 'Silk Charmeuse', silhouette: 'Fitted / Bodycon' });
   const [showMeasurements, setShowMeasurements] = useState(false);
+  const [savedSketches, setSavedSketches] = useState([]);
 
-  // 1. SAFE LIST OF "FAKE" RESULTS
-  // Since the free AI server is down (Robot Image), we use these high-quality placeholders
-  // so you can see how the app looks when it works perfectly.
-  const simulationSketches = [
-    "https://images.unsplash.com/photo-1576246342838-8e68449c4701?w=800&q=80", // Sketch 1
-    "https://i.pinimg.com/736x/87/42/1d/87421d01f80f12d2a44d18392109866c.jpg",    // Sketch 2
-    "https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/5201c184439937.5d5c414995f55.jpg" // Sketch 3
-  ];
+  useEffect(() => {
+    if (session?.user?.id) {
+      getUserSketches(session.user.id).then(sketches => {
+        setSavedSketches(sketches);
+      });
+    }
+  }, [session]);
 
-  const handleGenerateSketch = () => {
+  const handleGenerateSketch = async () => {
     if (!sketchPrompt) return;
 
-    // Start Loading Animation
     setIsSketching(true);
     setGeneratedSketch(null);
 
-    // 2. SIMULATION LOGIC
-    // We wait 2.5 seconds to "pretend" the AI is thinking, then show a result.
-    setTimeout(() => {
-        // Pick a random sketch from the safe list
-        const randomSketch = simulationSketches[Math.floor(Math.random() * simulationSketches.length)];
-        
-        setGeneratedSketch(randomSketch); 
-        setIsSketching(false); // Stop loading
-    }, 2500);
+    try {
+      const imageUrl = await generateSketch(sketchPrompt, designOptions, userProfile);
+      setGeneratedSketch(imageUrl);
+
+      if (session?.user?.id) {
+        await saveSketchToDatabase(session.user.id, sketchPrompt, designOptions, imageUrl);
+      }
+
+    } catch (error) {
+      console.error('Sketch generation failed:', error);
+    } finally {
+      setIsSketching(false);
+    }
   };
 
   return (
@@ -45,10 +49,15 @@ const DesignerStudio = ({ requestLogin, isLoggedIn }) => {
          <p className="text-gray-500 text-sm max-w-lg mx-auto font-sans">
             Turn words into couture sketches.
          </p>
-         {/* STATUS BADGE */}
-         <div className="inline-block mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-200">
-            ● Simulation Mode Active (No Errors)
-         </div>
+         {import.meta.env.VITE_OPENAI_API_KEY ? (
+           <div className="inline-block mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-200">
+             AI Powered by OpenAI DALL-E 3
+           </div>
+         ) : (
+           <div className="inline-block mt-3 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-yellow-200">
+             Simulation Mode
+           </div>
+         )}
        </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
@@ -98,7 +107,7 @@ const DesignerStudio = ({ requestLogin, isLoggedIn }) => {
                   <><Sparkles size={16}/> Generate Sketch</>
               )}
             </button>
-            {!isLoggedIn && <p className="text-[10px] text-center text-red-500 mt-2 flex items-center justify-center gap-1"><Lock size={10}/> Login required to save designs</p>}
+            {!session && <p className="text-[10px] text-center text-red-500 mt-2 flex items-center justify-center gap-1"><Lock size={10}/> Login required to save designs</p>}
          </div>
 
          <div className="space-y-6 w-full">

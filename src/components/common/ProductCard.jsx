@@ -1,20 +1,28 @@
 import React from 'react';
-import { Heart, Camera } from 'lucide-react';
+import { Heart, Camera, ExternalLink } from 'lucide-react';
+import { getShopifyProductLink } from '../../utils/shopify';
 
 const ProductCard = ({ product, toggleCloset, isInCloset, openDetails, openTryOn }) => {
-  // 1. SAFETY: Prevent crash if product is missing
   if (!product) return null;
+
+  const handleShopNow = (e) => {
+    e.stopPropagation();
+    const link = product.link || getShopifyProductLink(product.id);
+    if (link && link !== '#') {
+      window.open(link, '_blank');
+    } else {
+      alert('Product link coming soon');
+    }
+  };
 
   return (
     <div className="group w-full cursor-pointer flex flex-col">
-      
-      {/* IMAGE CONTAINER */}
+
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-100 mb-4">
-         
-         {/* Main Image */}
-         <img 
-           src={product.image || product.img || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400"} 
-           alt={product.name} 
+
+         <img
+           src={product.image || product.img || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400"}
+           alt={product.name}
            onClick={() => openDetails && openDetails(product)}
            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
          />
@@ -41,15 +49,26 @@ const ProductCard = ({ product, toggleCloset, isInCloset, openDetails, openTryOn
          )}
       </div>
 
-      {/* DETAILS */}
-      <div className="text-center" onClick={() => openDetails && openDetails(product)}>
-        <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-bold">
-          {product.category || "Collection"}
-        </p>
-        <h3 className="font-serif text-lg italic text-black mb-1">{product.name}</h3>
-        <p className="text-xs font-bold font-sans text-gray-900">
-          {typeof product.price === 'number' ? `$${product.price}` : product.price}
-        </p>
+      <div className="space-y-2">
+        <div className="text-center" onClick={() => openDetails && openDetails(product)}>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-bold">
+            {product.category || "Collection"}
+          </p>
+          <h3 className="font-serif text-lg italic text-black mb-1">{product.name}</h3>
+          <p className="text-xs font-bold font-sans text-gray-900">
+            {typeof product.price === 'number' ? `$${product.price}` : product.price}
+          </p>
+        </div>
+
+        {(product.link || product.id) && (
+          <button
+            onClick={handleShopNow}
+            className="w-full bg-black text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-colors flex items-center justify-center gap-1"
+          >
+            <ExternalLink size={12} />
+            Shop Now
+          </button>
+        )}
       </div>
 
     </div>

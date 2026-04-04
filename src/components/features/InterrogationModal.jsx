@@ -12,17 +12,16 @@ const InterrogationModal = () => {
   const [email, setEmail] = useState('');
   
   const [formData, setFormData] = useState({
-    full_name: '', dob: '', height_cm: '', weight_kg: '', skin_tone: 'Medium'
+    full_name: '', dob: '', height_cm: '', weight_kg: '', skin_tone: '#eac086'
   });
 
-  // Auto-detect step based on login status
   useEffect(() => {
     if (showInterrogation) {
-      if (session && !userProfile) setStep(3); // Logged in, needs profile
-      else if (session && userProfile) setShowInterrogation(false); // Already VIP
-      else setStep(1); // Needs Login
+      if (session && !userProfile) setStep(3);
+      else if (session && userProfile) setShowInterrogation(false);
+      else setStep(1);
     }
-  }, [showInterrogation, session, userProfile]);
+  }, [showInterrogation, session, userProfile, setShowInterrogation]);
 
   if (!showInterrogation) return null;
 
@@ -60,17 +59,24 @@ const InterrogationModal = () => {
     return "Unknown";
   };
 
-  // STEP 3: SAVE PROFILE
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.full_name || !formData.dob || !formData.height_cm) {
+      alert("Please fill in all required fields");
+      return;
+    }
     setLoading(true);
     try {
       const zodiac = getZodiac(formData.dob);
-      await saveProfile({ ...formData, zodiac });
-      alert("VIP Unlocked. Welcome to Ash X.");
+      await saveProfile({
+        ...formData,
+        zodiac,
+        height_cm: parseInt(formData.height_cm),
+        weight_kg: formData.weight_kg ? parseInt(formData.weight_kg) : null
+      });
       setShowInterrogation(false);
     } catch (err) {
-      alert("Save failed: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -124,6 +130,20 @@ const InterrogationModal = () => {
 
               <input type="text" placeholder="Weight (kg) - Optional" className="w-full border-b border-gray-300 py-2 outline-none"
                 onChange={e => setFormData({...formData, weight_kg: e.target.value})} />
+
+              <div className="mb-4">
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Skin Tone</label>
+                <div className="flex justify-center gap-2">
+                  {['#f5d0b0', '#eac086', '#d29b68', '#8d5524', '#3b2219'].map(color => (
+                    <div
+                      key={color}
+                      onClick={() => setFormData({...formData, skin_tone: color})}
+                      className={`h-10 w-10 rounded-full cursor-pointer border-2 transition-transform ${formData.skin_tone === color ? 'border-black scale-125 ring-2 ring-black ring-offset-2' : 'border-transparent hover:scale-110'}`}
+                      style={{backgroundColor: color}}
+                    />
+                  ))}
+                </div>
+              </div>
 
               <button disabled={loading} className="w-full bg-red-600 text-white py-4 mt-4 rounded-lg font-bold uppercase text-xs hover:bg-red-700 transition-all">
                  {loading ? <Loader2 className="animate-spin mx-auto"/> : "Unlock VIP"}
