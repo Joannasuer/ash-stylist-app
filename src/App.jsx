@@ -32,7 +32,7 @@ const AppContent = () => {
       {/* 3. THIS IS THE UNLOCK POPUP */}
       <InterrogationModal />
       
-      <main className="flex-grow">
+      <main className="flex-grow pt-16">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatPage />} />
