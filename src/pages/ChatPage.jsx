@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Plus, Trash2, Edit3, X, Copy, Check, RefreshCw, Sparkles, ChevronRight, Paperclip, Menu } from 'lucide-react';
-import { useApp } from '../context/AppContext';
 
 const injectFonts = () => {
   if (document.getElementById('ash-gf')) return;
@@ -298,20 +297,6 @@ function Message({ msg, onRegen, onLook, isLast, streamText, isStreaming }) {
 export default function ChatPage() {
   useEffect(() => { injectFonts(); }, []);
 
-  const { setShowSizeModal } = useApp();
-
-  // This is the key fix — measure header height so chat fills screen exactly
-  const outerRef = useRef(null);
-  useEffect(() => {
-    const measure = () => {
-      const header = document.querySelector('header');
-      const h = header ? header.offsetHeight : 0;
-      if (outerRef.current) outerRef.current.style.height = `${window.innerHeight - h}px`;
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);
 
   const INIT = { role: 'assistant', content: "Darling, I'm Ash. Let's make you look dangerous. What's the occasion?", id: 'init' };
   const [convos, setConvos] = useState(() => db.load());
@@ -391,7 +376,7 @@ export default function ChatPage() {
   const display = msgs.map(m => m.id === streamId ? { ...m, content: stxt, isStreaming: true } : m);
 
   return (
-    <div ref={outerRef} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.bg, width: '100%' }}>
+    <div style={{ position: 'fixed', top: 64, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.bg }}>
       <style>{CSS}</style>
 
       {/* Slim toolbar — history + new chat + collection. No duplicate of existing nav. */}
