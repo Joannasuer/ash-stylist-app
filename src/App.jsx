@@ -6,16 +6,15 @@ import ChatPage from './pages/ChatPage';
 import SketchPage from './pages/SketchPage';
 import FitProfileModal from './components/features/FitProfileModal';
 import { AppProvider, useApp } from './context/AppContext';
-
-// 1. IMPORT THE NEW AUTH PROVIDER
 import { AuthProvider } from './context/AuthContext';
+import InterrogationModal from './components/features/InterrogationModal';
 
-// 2. IMPORT THE UNLOCK MODAL
-import InterrogationModal from './components/features/InterrogationModal'; 
+// Detect if running inside Shopify iframe — if so, hide the React header
+const isEmbedded = (() => { try { return window.self !== window.top; } catch { return true; } })();
 
 const AppContent = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { showSizeModal, setShowSizeModal } = useApp(); 
+  const { showSizeModal, setShowSizeModal } = useApp();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -25,14 +24,10 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-gray-900 selection:bg-red-100">
-      <Header isScrolled={isScrolled} />
-      
+      {!isEmbedded && <Header isScrolled={isScrolled} />}
       {showSizeModal && <FitProfileModal onClose={() => setShowSizeModal(false)} />}
-      
-      {/* 3. THIS IS THE UNLOCK POPUP */}
       <InterrogationModal />
-      
-      <main className="flex-grow pt-16">
+      <main className={`flex-grow ${isEmbedded ? 'pt-0' : 'pt-12'}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatPage />} />
@@ -44,7 +39,6 @@ const AppContent = () => {
 };
 
 const App = () => (
-  // 4. WRAP EVERYTHING WITH AUTH PROVIDER
   <AuthProvider>
     <AppProvider>
       <Router>
