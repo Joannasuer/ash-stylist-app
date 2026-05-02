@@ -54,9 +54,8 @@ const DesignerStudio = () => {
              AI Powered by OpenAI DALL-E 3
            </div>
          ) : (
-           <div className="inline-block mt-3 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-yellow-200">
-             Simulation Mode
-         )}
+  null
+)}
        </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
