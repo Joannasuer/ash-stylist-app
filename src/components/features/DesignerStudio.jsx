@@ -56,7 +56,6 @@ const DesignerStudio = () => {
          ) : (
            <div className="inline-block mt-3 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-yellow-200">
              Simulation Mode
-           </div>
          )}
        </div>
 
