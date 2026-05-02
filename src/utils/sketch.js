@@ -1,10 +1,34 @@
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 export async function generateSketch(prompt, designOptions, userProfile) {
-  if (!OPENAI_API_KEY) {
-    console.warn("OpenAI API key not found. Using simulation mode.");
-    return getSimulationSketch();
-  }
+  const fabric = designOptions?.fabric || "silk";
+  const silhouette = designOptions?.silhouette || "fitted";
+
+  const fullPrompt = [
+    "high-fashion couture sketch",
+    `${silhouette} silhouette`,
+    `${fabric} fabric`,
+    prompt,
+    "editorial fashion illustration",
+    "elegant runway pose",
+    "black and white pencil rendering",
+    "minimalist white background",
+    "professional croquis style",
+  ].join(", ");
+
+  const seed = Math.floor(Math.random() * 1_000_000);
+  const url =
+    "https://image.pollinations.ai/prompt/" +
+    encodeURIComponent(fullPrompt) +
+    `?width=600&height=800&model=flux&nologo=true&seed=${seed}`;
+
+  // Warm-up request so the image is ready when the <img> tag loads it
+  try {
+    await fetch(url, { method: "HEAD" });
+  } catch {}
+
+  return url;
+}
 
   try {
     const enhancedPrompt = buildSketchPrompt(prompt, designOptions, userProfile);
