@@ -31,7 +31,7 @@ const FitProfileModal = ({ onClose }) => {
 
       // 2. Send Emails via FormSubmit (No Keys Needed)
       // Replace 'YOUR_EMAIL_HERE' with the email where YOU want to receive notifications.
-      const ADMIN_EMAIL = "YOUR_EMAIL_HERE"; // <--- PUT YOUR REAL EMAIL HERE
+      const ADMIN_EMAIL = "joanna92.jo@gmail.com"; // <--- PUT YOUR REAL EMAIL HERE
 
       if (ADMIN_EMAIL.includes("@")) {
           await fetch(`https://formsubmit.co/ajax/${ADMIN_EMAIL}`, {
